@@ -1,0 +1,32 @@
+<eh:config
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns='http://www.ehcache.org/v3'
+    xmlns:eh='http://www.ehcache.org/v3'
+    xmlns:jsr107='http://www.ehcache.org/v3/jsr107'
+	xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.3.xsd
+ 		 http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.3.xsd">
+
+<eh:cache alias = "parametros">
+    <eh:key-type>java.lang.String</eh:key-type>
+    <eh:value-type>java.util.List</eh:value-type>
+ 	<eh:resources>
+ 	    <eh:heap unit="entries">200</eh:heap>
+ 	</eh:resources>
+</eh:cache>
+</eh:config>
+<!-- <ehcache> -->
+<!--     <defaultcache -->
+<!--         maxElementsInMemory="100" -->
+<!--         eternal="false" -->
+<!--         timeToLiveSeconds="600" -->
+<!--         timeToIdleSeconds="120" -->
+<!--         diskPersistent="false" -->
+<!--     /> -->
+<!--  <cache -->
+<!-- 	name="com.varegos.utils.Parameter" -->
+<!-- 	maxEntriesLocalHeap="10000" -->
+<!-- 	eternal="false" -->
+<!--  	timeToLiveSeconds="600"/> -->
+<!-- <!     <persistence strategy="localTempSwap"/> -->
+<!-- <!  /> -->
+<!-- </ehcache> -->
