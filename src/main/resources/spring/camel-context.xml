@@ -46,13 +46,13 @@
             <marshal><custom ref="jackson"/></marshal>
         </onException>
         
-        <restConfiguration bindingMode="json">
+        <restConfiguration bindingMode="json" port="{{server.port}}">
             <componentProperty key="clientRequestValidation" value="true"/>
         </restConfiguration>
     
         <route id="get-params">
             <from uri="direct:get-params"/>
-            <log message="> Obteniendo parametros, route id: ${routeId}"/>
+            <log message="> Obteniendo parametros, route id: ${header.routeId}"/>
             <bean ref="paramDao" method="getParams"/>
             <setHeader headerName="Exchange.HTTP_RESPONSE_CODE">
                 <constant>200</constant>
