@@ -24,7 +24,6 @@ public class ParamDAO {
 	
 	private Logger log = LoggerFactory.getLogger(ParamDAO.class);
 	
-//	@Cacheable(value = "parametros", key="#routeId")
 	public List<Parameter> getParams(Exchange exchange) {
 		
 		String routeId = (String)exchange.getIn().getHeader("routeId");
