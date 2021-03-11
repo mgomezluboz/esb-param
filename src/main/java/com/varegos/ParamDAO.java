@@ -1,6 +1,5 @@
 package com.varegos;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Cache;
@@ -31,6 +30,14 @@ public class ParamDAO {
 		
 		exchange.getOut().setBody(result);
 		
+		for (Parameter p : result) {
+			if (p.getEncrypted() == 1) {
+				exchange.getOut().setHeader("Decrypt", "1");
+				exchange.getOut().setHeader("DecryptValue", p.getValor());
+				break;
+			}
+		}
+		
 		return result;
 	}
 	
@@ -50,5 +57,19 @@ public class ParamDAO {
 		if (paramCache != null) {
 			paramCache.evictAll();
 		}
+	}
+	
+	public void processDecryptedParam(Exchange exchange) {
+		List<Parameter> finalBody = (List<Parameter>)exchange.getIn().getHeader("originalBody");
+		String decryptedValue = new String((byte[])exchange.getIn().getBody());
+		
+		for (Parameter p : finalBody) {
+			if (p.getEncrypted() == 1) {
+				p.setValor(decryptedValue);
+				break;
+			}
+		}
+		
+		exchange.getOut().setBody(finalBody);
 	}
 }

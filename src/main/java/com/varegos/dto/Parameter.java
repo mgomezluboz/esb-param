@@ -23,6 +23,8 @@ public class Parameter {
 	private String routeId;
 	private String nombre;
 	private String valor;
+	@JsonIgnore
+	private Integer encrypted;
 	
 	public String getNombre() {
 		return nombre;
@@ -47,5 +49,11 @@ public class Parameter {
 	}
 	public void setRouteId(String routeId) {
 		this.routeId = routeId;
+	}
+	public Integer getEncrypted() {
+		return this.encrypted;
+	}
+	public void setEncrypted(Integer encrypted) {
+		this.encrypted = encrypted;
 	}
 }
