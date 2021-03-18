@@ -34,6 +34,7 @@ public class ParamDAO {
 			if (p.getEncrypted() == 1) {
 				exchange.getOut().setHeader("Decrypt", "1");
 				exchange.getOut().setHeader("DecryptValue", p.getValor());
+				exchange.getOut().setHeader("CamelEhcacheKey", p.getValor());
 				break;
 			}
 		}
@@ -61,7 +62,13 @@ public class ParamDAO {
 	
 	public void processDecryptedParam(Exchange exchange) {
 		List<Parameter> finalBody = (List<Parameter>)exchange.getIn().getHeader("originalBody");
-		String decryptedValue = new String((byte[])exchange.getIn().getBody());
+		String decryptedValue;
+		
+		if ("1".equals(((String)exchange.getIn().getHeader("cache")))) {
+			decryptedValue = (String)exchange.getIn().getBody();
+		} else {
+			decryptedValue = new String((byte[])exchange.getIn().getBody());
+		}
 		
 		for (Parameter p : finalBody) {
 			if (p.getEncrypted() == 1) {

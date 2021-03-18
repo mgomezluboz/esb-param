@@ -95,11 +95,26 @@
             <setBody>
                 <simple>${header.DecryptValue}</simple>
             </setBody>
-            <log message="> Desencriptando ${body}"/>
-            <unmarshal>
-            	<base64/>
-            </unmarshal>
-            <unmarshal ref="decrypt"/>
+            <to uri="ehcache://decryptCache?action=GET&amp;keyType=java.lang.String&amp;valueType=java.lang.String&amp;key=#${header.DecryptValue}&amp;configurationUri=classpath:ehcache.xml"/>
+            <choice>
+            	<when>
+            	<simple>${header.CamelEhcacheActionHasResult} == true</simple>
+            		<log message="> Encontrado en la cache de decrypt ${body}"/>
+            		<setHeader headerName="cache"><constant>1</constant></setHeader>
+            	</when>
+            	<when>
+            	<simple>${header.CamelEhcacheActionHasResult} == false</simple>
+            		<log message="> Desencriptando ${body}"/>
+		            <unmarshal>
+		            	<base64/>
+		            </unmarshal>
+		            <unmarshal ref="decrypt"/>
+		            <setHeader headerName="CamelEhcacheValue">
+		            	<simple>${body}</simple>
+		            </setHeader>
+		            <to uri="ehcache://decryptCache?action=PUT&amp;keyType=java.lang.String&amp;valueType=java.lang.String&amp;key=#${header.DecryptValue}&amp;configurationUri=classpath:ehcache.xml"/>
+            	</when>
+            </choice>
             <log message="> Resultado: ${body}"/>
             <bean ref="paramDao" method="processDecryptedParam"/>
         </route>
