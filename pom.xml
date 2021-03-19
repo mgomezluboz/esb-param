@@ -73,6 +73,23 @@
 		<groupId>org.apache.camel</groupId>
 		<artifactId>camel-servlet-starter</artifactId>
 	</dependency>
+	<dependency>
+		<groupId>org.apache.camel</groupId>
+		<artifactId>camel-crypto</artifactId>
+	</dependency>
+	<dependency>
+	    <groupId>com.google.code.spring-crypto-utils</groupId>
+	    <artifactId>spring-crypto-utils</artifactId>
+	    <version>1.4.0</version>
+	</dependency>
+	<dependency>
+	  <groupId>org.apache.camel</groupId>
+	  <artifactId>camel-base64</artifactId>
+	</dependency>
+	<dependency>
+	    <groupId>org.apache.camel</groupId>
+	    <artifactId>camel-ehcache</artifactId>
+	</dependency>
   </dependencies>
   <repositories>
     <repository>

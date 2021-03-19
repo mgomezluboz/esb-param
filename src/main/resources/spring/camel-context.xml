@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd	http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+	xmlns:crypt="http://springcryptoutils.com/schema/crypt"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd	http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd http://springcryptoutils.com/schema/crypt http://springcryptoutils.com/schema/crypt.xsd">
     
     <bean class="org.apache.camel.component.properties.PropertiesComponent" id="properties">
 	    <property name="location" value="classpath:application.properties"/>
@@ -26,6 +27,14 @@
 	
 	<bean id="exceptionHandler" class="com.varegos.ExceptionHandler"/>
 	<bean id="paramDao" class="com.varegos.ParamDAO"/>
+	<crypt:keystore id="keyStore" 
+                location="classpath:param.jceks"
+                password="vikingo2021"
+                type="JCEKS"/>
+	<crypt:secretKey id="secretKey"
+                 keystore-ref="keyStore"
+                 alias="param"
+                 password="vikingo2021"/>
 	
 	<jpa:repositories base-package="com.varegos"/>
     
@@ -33,6 +42,7 @@
     
     	<dataFormats>
 		    <json id="jackson" library="Jackson"/>
+		    <crypto id="decrypt" algorithm="AES/ECB/PKCS5Padding" keyRef="secretKey" />
 		</dataFormats>
     
     	<onException>
@@ -54,6 +64,12 @@
             <from uri="direct:get-params"/>
             <log message="> Obteniendo parametros, route id: ${header.routeId}"/>
             <bean ref="paramDao" method="getParams"/>
+            <choice>
+            	<when>
+            		<simple>${header.Decrypt} == '1'</simple>
+            		<to uri="direct:decrypt"/>
+            	</when>
+            </choice>
             <setHeader headerName="Exchange.HTTP_RESPONSE_CODE">
                 <constant>200</constant>
             </setHeader>
@@ -69,6 +85,38 @@
             <setHeader headerName="Exchange.HTTP_RESPONSE_CODE">
                 <constant>202</constant>
             </setHeader>
+        </route>
+        
+        <route id="decrypt-route">
+            <from uri="direct:decrypt"/>
+            <setHeader headerName="OriginalBody">
+                <simple>${body}</simple>
+            </setHeader>
+            <setBody>
+                <simple>${header.DecryptValue}</simple>
+            </setBody>
+            <to uri="ehcache://decryptCache?action=GET&amp;keyType=java.lang.String&amp;valueType=java.lang.String&amp;key=#${header.DecryptValue}&amp;configurationUri=classpath:ehcache.xml"/>
+            <choice>
+            	<when>
+            	<simple>${header.CamelEhcacheActionHasResult} == true</simple>
+            		<log message="> Encontrado en la cache de decrypt ${body}"/>
+            		<setHeader headerName="cache"><constant>1</constant></setHeader>
+            	</when>
+            	<when>
+            	<simple>${header.CamelEhcacheActionHasResult} == false</simple>
+            		<log message="> Desencriptando ${body}"/>
+		            <unmarshal>
+		            	<base64/>
+		            </unmarshal>
+		            <unmarshal ref="decrypt"/>
+		            <setHeader headerName="CamelEhcacheValue">
+		            	<simple>${body}</simple>
+		            </setHeader>
+		            <to uri="ehcache://decryptCache?action=PUT&amp;keyType=java.lang.String&amp;valueType=java.lang.String&amp;key=#${header.DecryptValue}&amp;configurationUri=classpath:ehcache.xml"/>
+            	</when>
+            </choice>
+            <log message="> Resultado: ${body}"/>
+            <bean ref="paramDao" method="processDecryptedParam"/>
         </route>
     </camelContext>
 </beans>
