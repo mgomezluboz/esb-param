@@ -63,13 +63,27 @@
         <route id="get-params">
             <from uri="direct:get-params"/>
             <log message="> Obteniendo parametros, route id: ${header.routeId}"/>
-            <bean ref="paramDao" method="getParams"/>
+            <to uri="ehcache://parametros?action=GET&amp;key=#${header.routeId}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
             <choice>
             	<when>
-            		<simple>${header.Decrypt} == '1'</simple>
-            		<to uri="direct:decrypt"/>
+            	<simple>${header.CamelEhcacheActionHasResult} == true</simple>
+            		<log message="> Encontrado en la cache ${body}"/>
+            		<setHeader headerName="cache"><constant>1</constant></setHeader>
+            	</when>
+            	<when>
+            	<simple>${header.CamelEhcacheActionHasResult} == false</simple>
+            		<log message="> Buscando parametros en la base de datos"/>
+            		<bean ref="paramDao" method="getParams"/>
+		            <choice>
+		            	<when>
+		            		<simple>${header.Decrypt} == '1'</simple>
+		            		<to uri="direct:decrypt"/>
+		            	</when>
+		            </choice>
+		            <to uri="ehcache://parametros?action=PUT&amp;key=#${header.routeId}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
             	</when>
             </choice>
+            
             <setHeader headerName="Exchange.HTTP_RESPONSE_CODE">
                 <constant>200</constant>
             </setHeader>
@@ -95,26 +109,11 @@
             <setBody>
                 <simple>${header.DecryptValue}</simple>
             </setBody>
-            <to uri="ehcache://decryptCache?action=GET&amp;keyType=java.lang.String&amp;valueType=java.lang.String&amp;key=#${header.DecryptValue}&amp;configurationUri=classpath:ehcache.xml"/>
-            <choice>
-            	<when>
-            	<simple>${header.CamelEhcacheActionHasResult} == true</simple>
-            		<log message="> Encontrado en la cache de decrypt ${body}"/>
-            		<setHeader headerName="cache"><constant>1</constant></setHeader>
-            	</when>
-            	<when>
-            	<simple>${header.CamelEhcacheActionHasResult} == false</simple>
-            		<log message="> Desencriptando ${body}"/>
-		            <unmarshal>
-		            	<base64/>
-		            </unmarshal>
-		            <unmarshal ref="decrypt"/>
-		            <setHeader headerName="CamelEhcacheValue">
-		            	<simple>${body}</simple>
-		            </setHeader>
-		            <to uri="ehcache://decryptCache?action=PUT&amp;keyType=java.lang.String&amp;valueType=java.lang.String&amp;key=#${header.DecryptValue}&amp;configurationUri=classpath:ehcache.xml"/>
-            	</when>
-            </choice>
+        	<log message="> Desencriptando ${body}"/>
+            <unmarshal>
+            	<base64/>
+            </unmarshal>
+            <unmarshal ref="decrypt"/>
             <log message="> Resultado: ${body}"/>
             <bean ref="paramDao" method="processDecryptedParam"/>
         </route>
