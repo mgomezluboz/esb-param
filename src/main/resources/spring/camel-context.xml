@@ -35,6 +35,8 @@
                  keystore-ref="keyStore"
                  alias="param"
                  password="vikingo2021"/>
+                 
+    <bean id="listAggregationStrategy" class="com.varegos.ListAggregationStrategy"/>
 	
 	<jpa:repositories base-package="com.varegos"/>
     
@@ -68,18 +70,21 @@
             	<when>
             	<simple>${header.CamelEhcacheActionHasResult} == true</simple>
             		<log message="> Encontrado en la cache ${body}"/>
-            		<setHeader headerName="cache"><constant>1</constant></setHeader>
             	</when>
             	<when>
             	<simple>${header.CamelEhcacheActionHasResult} == false</simple>
             		<log message="> Buscando parametros en la base de datos"/>
             		<bean ref="paramDao" method="getParams"/>
-		            <choice>
-		            	<when>
-		            		<simple>${header.Decrypt} == '1'</simple>
-		            		<to uri="direct:decrypt"/>
-		            	</when>
-		            </choice>
+            		<split strategyRef="listAggregationStrategy">
+            			<simple>${body}</simple>
+            			<bean ref="paramDao" method="processParam"/>
+            			<choice>
+			            	<when>
+			            		<simple>${header.Decrypt} == '1'</simple>
+			            		<to uri="direct:decrypt"/>
+			            	</when>
+			            </choice>
+            		</split>
 		            <to uri="ehcache://parametros?action=PUT&amp;key=#${header.routeId}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
             	</when>
             </choice>

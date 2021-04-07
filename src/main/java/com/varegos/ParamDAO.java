@@ -28,18 +28,22 @@ public class ParamDAO {
 		String routeId = (String)exchange.getIn().getHeader("routeId");
 		List<Parameter> result = repo.findByRouteId(routeId);
 		
+		exchange.getOut().setHeader("ParamCount", result.size());
 		exchange.getOut().setBody(result);
 		
-		for (Parameter p : result) {
-			if (p.getEncrypted() == 1) {
-				exchange.getOut().setHeader("Decrypt", "1");
-				exchange.getOut().setHeader("DecryptValue", p.getValor());
-				exchange.getOut().setHeader("CamelEhcacheKey", p.getValor());
-				break;
-			}
-		}
-		
 		return result;
+	}
+	
+	public void processParam(Exchange exchange) {
+		Parameter p = (Parameter)exchange.getIn().getBody();
+		
+		exchange.getOut().setBody(p);
+		exchange.getOut().setHeaders(exchange.getIn().getHeaders());
+		
+		if (p.getEncrypted() == 1) {
+			exchange.getOut().setHeader("Decrypt", "1");
+			exchange.getOut().setHeader("DecryptValue", p.getValor());
+		}
 	}
 	
 	public void setExchangeParams(Exchange exchange) {
@@ -61,21 +65,9 @@ public class ParamDAO {
 	}
 	
 	public void processDecryptedParam(Exchange exchange) {
-		List<Parameter> finalBody = (List<Parameter>)exchange.getIn().getHeader("originalBody");
-		String decryptedValue;
-		
-		if ("1".equals(((String)exchange.getIn().getHeader("cache")))) {
-			decryptedValue = (String)exchange.getIn().getBody();
-		} else {
-			decryptedValue = new String((byte[])exchange.getIn().getBody());
-		}
-		
-		for (Parameter p : finalBody) {
-			if (p.getEncrypted() == 1) {
-				p.setValor(decryptedValue);
-				break;
-			}
-		}
+		Parameter finalBody = (Parameter)exchange.getIn().getHeader("originalBody");
+		String decryptedValue = new String((byte[])exchange.getIn().getBody());
+		finalBody.setValor(decryptedValue);
 		
 		exchange.getOut().setBody(finalBody);
 	}
