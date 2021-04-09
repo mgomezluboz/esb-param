@@ -7,7 +7,7 @@
             <to uri="direct:get-params"/>
         </get>
         <put consumes="application/json,application/xml" id="clearCache" produces="application/json,application/xml" uri="/clear">
-<!--             <param name="body" required="true" type="body"/> -->
+            <param name="body" required="false" type="body"/>
             <to uri="direct:clear-cache"/>
         </put>
     </rest>

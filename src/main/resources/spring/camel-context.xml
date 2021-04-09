@@ -99,8 +99,22 @@
         
         <route id="clear-cache">
             <from uri="direct:clear-cache"/>
-            <log message="> Limpiando cache de parametros..."/>
-            <bean ref="paramDao" method="clearCache"/>
+            <choice>
+            	<when>
+            		<simple>${body} == null</simple>
+            		<log message="> Vaciando cache de parametros..."/>
+            		<to uri="ehcache://parametros?action=CLEAR&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
+            	</when>
+            	<when>
+            		<simple>${body} != null</simple>
+            		<log message="> Limpiando cache de parametros individuales..."/>
+            		<split>
+            			<simple>${body}</simple>
+            			<log message=">>> Borrando parametros de ${body}"/>
+            			<to uri="ehcache://parametros?action=REMOVE&amp;key=#${body}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
+            		</split>
+            	</when>
+            </choice>
             <setHeader headerName="Exchange.HTTP_RESPONSE_CODE">
                 <constant>202</constant>
             </setHeader>

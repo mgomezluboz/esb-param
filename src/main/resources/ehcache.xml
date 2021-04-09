@@ -14,19 +14,3 @@
  	</eh:resources>
 </eh:cache>
 </eh:config>
-<!-- <ehcache> -->
-<!--     <defaultcache -->
-<!--         maxElementsInMemory="100" -->
-<!--         eternal="false" -->
-<!--         timeToLiveSeconds="600" -->
-<!--         timeToIdleSeconds="120" -->
-<!--         diskPersistent="false" -->
-<!--     /> -->
-<!--  <cache -->
-<!-- 	name="com.varegos.utils.Parameter" -->
-<!-- 	maxEntriesLocalHeap="10000" -->
-<!-- 	eternal="false" -->
-<!--  	timeToLiveSeconds="600"/> -->
-<!-- <!     <persistence strategy="localTempSwap"/> -->
-<!-- <!  /> -->
-<!-- </ehcache> -->
