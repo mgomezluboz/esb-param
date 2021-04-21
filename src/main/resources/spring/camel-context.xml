@@ -49,7 +49,7 @@
     
     	<onException>
             <exception>javax.validation.ConstraintViolationException</exception>
-            <exception>com.varegos.exceptions.NotFoundException</exception>
+            <exception>com.varegos.exceptions.HttpException</exception>
             <handled>
                 <constant>true</constant>
             </handled>
@@ -65,7 +65,7 @@
         <route id="get-params">
             <from uri="direct:get-params"/>
             <log message="> Obteniendo parametros, route id: ${header.routeId}"/>
-            <to uri="ehcache://parametros?action=GET&amp;key=#${header.routeId}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
+            <toD uri="ehcache://parametros?action=GET&amp;key=#${header.routeId}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
             <choice>
             	<when>
             	<simple>${header.CamelEhcacheActionHasResult} == true</simple>
@@ -85,7 +85,7 @@
 			            	</when>
 			            </choice>
             		</split>
-		            <to uri="ehcache://parametros?action=PUT&amp;key=#${header.routeId}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
+		            <toD uri="ehcache://parametros?action=PUT&amp;key=#${header.routeId}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
             	</when>
             </choice>
             
@@ -103,7 +103,7 @@
             	<when>
             		<simple>${body} == null</simple>
             		<log message="> Vaciando cache de parametros..."/>
-            		<to uri="ehcache://parametros?action=CLEAR&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
+            		<toD uri="ehcache://parametros?action=CLEAR&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
             	</when>
             	<when>
             		<simple>${body} != null</simple>
@@ -111,13 +111,16 @@
             		<split>
             			<simple>${body}</simple>
             			<log message=">>> Borrando parametros de ${body}"/>
-            			<to uri="ehcache://parametros?action=REMOVE&amp;key=#${body}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
+            			<toD uri="ehcache://parametros?action=REMOVE&amp;key=#${body}&amp;configurationUri=classpath:ehcache.xml&amp;keyType=java.lang.String&amp;valueType=java.util.List"/>
             		</split>
             	</when>
             </choice>
             <setHeader headerName="Exchange.HTTP_RESPONSE_CODE">
                 <constant>202</constant>
             </setHeader>
+            <setBody>
+                <simple>null</simple>
+            </setBody>
         </route>
         
         <route id="decrypt-route">

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.varegos.dto.Parameter;
+import com.varegos.exceptions.HttpException;
 
 public class ParamDAO {
 
@@ -23,10 +24,14 @@ public class ParamDAO {
 	
 	private Logger log = LoggerFactory.getLogger(ParamDAO.class);
 	
-	public List<Parameter> getParams(Exchange exchange) {
+	public List<Parameter> getParams(Exchange exchange) throws HttpException {
 		
 		String routeId = (String)exchange.getIn().getHeader("routeId");
 		List<Parameter> result = repo.findByRouteId(routeId);
+		
+		if (result.isEmpty()) {
+			throw new HttpException("Parametro no encontrado", 404);
+		}
 		
 		exchange.getOut().setHeader("ParamCount", result.size());
 		exchange.getOut().setBody(result);
@@ -46,7 +51,7 @@ public class ParamDAO {
 		}
 	}
 	
-	public void setExchangeParams(Exchange exchange) {
+	public void setExchangeParams(Exchange exchange) throws HttpException {
 		List<Parameter> paramList = getParams(exchange);
 		
 		exchange.getOut().setHeaders(exchange.getIn().getHeaders());
